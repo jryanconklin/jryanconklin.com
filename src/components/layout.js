@@ -1,9 +1,7 @@
 import React from "react"
-import "../../node_modules/bootstrap/dist/css/bootstrap.css"
-import "./layout.css"
+import "./tailwind.css"
 
-const layoutClasses =
-  "d-flex align-items-center justify-content-center min-vh-100 sans"
+const layoutClasses = "flex items-center justify-center h-screen sans"
 
 export default ({ children }) => (
   <div className={layoutClasses}>

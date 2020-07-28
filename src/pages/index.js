@@ -4,30 +4,30 @@ import Layout from "../components/layout"
 const IndexPage = () => (
   <Layout>
     <h1>Full Stack Developer</h1>
-    <p>Hi, I'm J. Ryan Conklin. I work on the internet.</p>
-    <ul className={"nav justify-content-center"}>
-      <li className={"nav-item"}>
+    <p className={"pb-3"}>Hi, I'm J. Ryan Conklin. I work on the internet.</p>
+    <ul className={"flex justify-center"}>
+      <li className={"px-4"}>
         <a
           href="https://github.com/jryanconklin"
-          className="icoGitHub nav-link text-dark"
+          className="icoGitHub text-purple-700"
           title="GitHub"
         >
           <i className="fa fa-github"></i>
         </a>
       </li>
-      <li className={"nav-item"}>
+      <li className={"px-4"}>
         <a
           href="https://twitter.com/jryanconklin"
-          className="icoTwitter nav-link text-dark"
+          className="icoTwitter text-purple-700"
           title="Twitter"
         >
           <i className="fa fa-twitter"></i>
         </a>
       </li>
-      <li className={"nav-item"}>
+      <li className={"px-4"}>
         <a
           href="https://www.linkedin.com/in/jryanconklin/"
-          className="icoLinkedin nav-link text-dark"
+          className="icoLinkedin text-purple-700"
           title="Linkedin"
         >
           <i className="fa fa-linkedin"></i>
