@@ -7,6 +7,9 @@ export default function Home() {
         <h1>
           <a href="/">J. Ryan Conklin</a>
         </h1>
+        <nav className="site-nav">
+          <a href="/experience">Experience</a>
+        </nav>
       </header>
 
       <main className="page-container">
