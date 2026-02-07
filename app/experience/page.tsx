@@ -1,4 +1,17 @@
 import { Github, Linkedin } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Experience",
+  description:
+    "Over a decade of UX engineering and design systems leadership. Led teams at Leap Event Technology, Cardinal Financial, and built design systems at ThinkShout, Phase2, and Chapter Three.",
+  openGraph: {
+    title: "Experience | J. Ryan Conklin",
+    description:
+      "Over a decade of UX engineering and design systems leadership. Led teams at Leap Event Technology, Cardinal Financial, and built design systems at ThinkShout, Phase2, and Chapter Three.",
+    url: "https://jryanconklin.com/experience",
+  },
+};
 
 export default function Experience() {
   return (

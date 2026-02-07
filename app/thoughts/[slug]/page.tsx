@@ -1,11 +1,33 @@
 import { getPostBySlug, getAllPostSlugs } from "@/lib/posts";
 import { Github, Linkedin } from "lucide-react";
+import type { Metadata } from "next";
 
 export async function generateStaticParams() {
   const slugs = getAllPostSlugs();
   return slugs.map((slug) => ({
     slug: slug,
   }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
+
+  return {
+    title: post.title,
+    description: post.description,
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      type: "article",
+      url: `https://jryanconklin.com/thoughts/${slug}`,
+      publishedTime: post.date,
+    },
+  };
 }
 
 export default async function Post({

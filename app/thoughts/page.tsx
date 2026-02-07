@@ -1,5 +1,18 @@
 import { getAllPosts } from "@/lib/posts";
 import { Github, Linkedin } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Thoughts",
+  description:
+    "Writing about design systems, UX engineering, and building better experiences. Thoughts on clarity, collaboration, and making work more human.",
+  openGraph: {
+    title: "Thoughts | J. Ryan Conklin",
+    description:
+      "Writing about design systems, UX engineering, and building better experiences. Thoughts on clarity, collaboration, and making work more human.",
+    url: "https://jryanconklin.com/thoughts",
+  },
+};
 
 export default function Thoughts() {
   const posts = getAllPosts();
