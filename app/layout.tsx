@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "J. Ryan Conklin",
-  description: "Engineering Leader",
+  description: "UX Engineer focused on Design Systems",
 };
 
 export default function RootLayout({
@@ -13,8 +13,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="layout">
-        <div>{children}</div>
+      <body>
+        {children}
       </body>
     </html>
   );
