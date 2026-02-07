@@ -1,6 +1,9 @@
+import { getAllPosts } from "@/lib/posts";
 import { Github, Linkedin } from "lucide-react";
 
-export default function Home() {
+export default function Thoughts() {
+  const posts = getAllPosts();
+
   return (
     <>
       <header className="site-header">
@@ -15,23 +18,31 @@ export default function Home() {
 
       <main className="page-container">
         <section className="intro">
-          <h1>UX Engineer</h1>
-          <h2>Building design systems that scale</h2>
+          <h1>Thoughts</h1>
+          <p>
+            Writing about design systems, UX engineering, and building better
+            experiences.
+          </p>
         </section>
 
         <hr />
 
         <section className="section">
-          <h3 className="section-title">About</h3>
-          <p>
-            I create intentional interactions, both technical and personal, for companies who are starting to feel the pain of collaboration at scale.
-          </p>
-          <p>
-            I believe creating teams and practices where work is achievable and shared, leads to a collaborative space where employees want to show up for each other and the work.
-          </p>
-          <p>
-            Engaged, confident teams start with championing capability, encouraging curiosity, and rewarding accessibility.
-          </p>
+          {posts.length === 0 ? (
+            <p>No posts yet. Check back soon!</p>
+          ) : (
+            <div className="posts-list">
+              {posts.map((post) => (
+                <article key={post.slug} className="post-item">
+                  <h2>
+                    <a href={`/thoughts/${post.slug}`}>{post.title}</a>
+                  </h2>
+                  <time className="post-date">{post.date}</time>
+                  <p>{post.description}</p>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
 
         <hr />
@@ -46,7 +57,10 @@ export default function Home() {
               </a>
             </li>
             <li>
-              <a href="https://www.linkedin.com/in/jryanconklin/" title="LinkedIn">
+              <a
+                href="https://www.linkedin.com/in/jryanconklin/"
+                title="LinkedIn"
+              >
                 <Linkedin />
                 <span>LinkedIn</span>
               </a>

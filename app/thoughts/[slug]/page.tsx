@@ -1,6 +1,21 @@
+import { getPostBySlug, getAllPostSlugs } from "@/lib/posts";
 import { Github, Linkedin } from "lucide-react";
 
-export default function Home() {
+export async function generateStaticParams() {
+  const slugs = getAllPostSlugs();
+  return slugs.map((slug) => ({
+    slug: slug,
+  }));
+}
+
+export default async function Post({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
+
   return (
     <>
       <header className="site-header">
@@ -14,25 +29,23 @@ export default function Home() {
       </header>
 
       <main className="page-container">
-        <section className="intro">
-          <h1>UX Engineer</h1>
-          <h2>Building design systems that scale</h2>
-        </section>
+        <article className="post">
+          <header className="post-header">
+            <h1>{post.title}</h1>
+            <time className="post-date">{post.date}</time>
+          </header>
 
-        <hr />
+          <div
+            className="post-content"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
 
-        <section className="section">
-          <h3 className="section-title">About</h3>
-          <p>
-            I create intentional interactions, both technical and personal, for companies who are starting to feel the pain of collaboration at scale.
-          </p>
-          <p>
-            I believe creating teams and practices where work is achievable and shared, leads to a collaborative space where employees want to show up for each other and the work.
-          </p>
-          <p>
-            Engaged, confident teams start with championing capability, encouraging curiosity, and rewarding accessibility.
-          </p>
-        </section>
+          <footer className="post-footer">
+            <a href="/thoughts" className="back-link">
+              ← Back to all thoughts
+            </a>
+          </footer>
+        </article>
 
         <hr />
 
@@ -46,7 +59,10 @@ export default function Home() {
               </a>
             </li>
             <li>
-              <a href="https://www.linkedin.com/in/jryanconklin/" title="LinkedIn">
+              <a
+                href="https://www.linkedin.com/in/jryanconklin/"
+                title="LinkedIn"
+              >
                 <Linkedin />
                 <span>LinkedIn</span>
               </a>

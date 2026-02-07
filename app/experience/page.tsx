@@ -9,6 +9,7 @@ export default function Experience() {
         </h1>
         <nav className="site-nav">
           <a href="/experience">Experience</a>
+          <a href="/thoughts">Thoughts</a>
         </nav>
       </header>
 
