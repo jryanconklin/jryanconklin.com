@@ -56,7 +56,7 @@ export default function Experience() {
             <div className="experience-header">
               <h3>Director & Team Lead, UI/UX Engineering</h3>
               <p className="experience-meta">
-                Cardinal Financial Company · Jun 2022 - Mar 2023
+                Cardinal Financial Company · Jun 2022 - Mar 2024
               </p>
             </div>
             <p>
