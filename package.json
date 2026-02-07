@@ -1,33 +1,35 @@
 {
   "name": "jryanconklin",
+  "type": "module",
   "private": true,
-  "description": "A portfolio created from gatsby-starter-hello-world",
-  "version": "0.1.0",
+  "description": "A portfolio site built with Next.js",
+  "version": "0.2.0",
   "license": "MIT",
   "scripts": {
-    "build": "gatsby build",
-    "develop": "gatsby develop",
-    "format": "prettier --write \"**/*.{js,jsx,json,md}\"",
-    "start": "npm run develop",
-    "serve": "gatsby serve",
-    "clean": "gatsby clean",
-    "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "clean": "rm -rf .next out"
   },
   "dependencies": {
-    "gatsby": "^2.24.12",
-    "gatsby-plugin-postcss": "^2.3.11",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "lucide-react": "^0.468.0",
+    "next": "^15.1.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "prettier": "^1.19.1",
-    "tailwindcss": "^1.6.0"
+    "@types/node": "^22.10.5",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jryanconklin/jryanconklin"
+    "url": "https://github.com/jryanconklin/jryanconklin.com"
   },
   "bugs": {
-    "url": "https://github.com/jryanconklin/jryanconklin/issues"
+    "url": "https://github.com/jryanconklin/jryanconklin.com/issues"
   }
 }

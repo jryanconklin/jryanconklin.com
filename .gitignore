@@ -54,7 +54,12 @@ typings/
 # dotenv environment variable files
 .env*
 
-# gatsby files
+# next.js files
+.next/
+out/
+next-env.d.ts
+
+# gatsby files (legacy)
 .cache/
 public
 
