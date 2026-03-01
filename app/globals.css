@@ -5,34 +5,34 @@
 
 :root {
   /* Colors - Dark Theme */
-  --color-bg: #1A0B2E;              /* Deep purple */
-  --color-bg-alt: #2D1B4E;          /* Slightly lighter purple for contrast */
+  --color-bg: #1a0b2e; /* Deep purple */
+  --color-bg-alt: #2d1b4e; /* Slightly lighter purple for contrast */
 
   /* Colors - Text */
-  --color-text-primary: #F8F8F2;    /* Off-white */
-  --color-text-secondary: #B8B8A8;  /* Muted yellow-gray */
-  --color-text-muted: #7E7D93;      /* Purple-gray */
+  --color-text-primary: #f8f8f2; /* Off-white */
+  --color-text-secondary: #b8b8a8; /* Muted yellow-gray */
+  --color-text-muted: #7e7d93; /* Purple-gray */
 
   /* Colors - Accents */
-  --color-accent-primary: #A78BFA;     /* Light purple */
-  --color-accent-primary-hover: #C4B5FD; /* Lighter on hover */
-  --color-accent-secondary: #FCD34D;   /* Amber/gold */
-  --color-border: #4C3A6D;             /* Purple border */
+  --color-accent-primary: #a78bfa; /* Light purple */
+  --color-accent-primary-hover: #c4b5fd; /* Lighter on hover */
+  --color-accent-secondary: #fcd34d; /* Amber/gold */
+  --color-border: #4c3a6d; /* Purple border */
 
   /* Typography - Font Families */
-  --font-heading: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
-  --font-body: 'Georgia', 'Times New Roman', serif;
-  --font-mono: 'Menlo', 'Monaco', 'Consolas', monospace;
+  --font-heading: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  --font-body: "Georgia", "Times New Roman", serif;
+  --font-mono: "Menlo", "Monaco", "Consolas", monospace;
 
   /* Typography - Font Sizes (BOLD SCALE) */
-  --text-xs: 0.875rem;    /* 14px */
-  --text-sm: 1rem;        /* 16px */
-  --text-base: 1.25rem;   /* 20px - bigger base */
-  --text-lg: 1.5rem;      /* 24px */
-  --text-xl: 2rem;        /* 32px */
-  --text-2xl: 2.5rem;     /* 40px */
-  --text-3xl: 3.5rem;     /* 56px - much bigger H1 */
-  --text-4xl: 4rem;       /* 64px */
+  --text-xs: 0.875rem; /* 14px */
+  --text-sm: 1rem; /* 16px */
+  --text-base: 1.25rem; /* 20px - bigger base */
+  --text-lg: 1.5rem; /* 24px */
+  --text-xl: 2rem; /* 32px */
+  --text-2xl: 2.5rem; /* 40px */
+  --text-3xl: 3.5rem; /* 56px - much bigger H1 */
+  --text-4xl: 4rem; /* 64px */
 
   /* Typography - Line Heights */
   --leading-tight: 1.1;
@@ -54,6 +54,13 @@
 
   /* Transitions */
   --transition-fast: 150ms ease;
+
+  /* @froglet/ui token mappings */
+  --link-text-color: var(--color-accent-primary);
+  --link-text-color-hover: var(--color-accent-primary-hover);
+  --link-text-color-visited: var(--color-accent-primary);
+  --link-text-decoration: none;
+  --link-outline-color-focus: var(--color-accent-primary);
 }
 
 /**
@@ -460,8 +467,8 @@ hr {
 @media (max-width: 768px) {
   :root {
     --page-padding: var(--space-3);
-    --text-3xl: 2.5rem;    /* Smaller H1 on mobile */
-    --text-2xl: 2rem;      /* Smaller H2 on mobile */
+    --text-3xl: 2.5rem; /* Smaller H1 on mobile */
+    --text-2xl: 2rem; /* Smaller H2 on mobile */
   }
 
   .social-links {

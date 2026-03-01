@@ -92,5 +92,6 @@ This keeps posts sorted chronologically in your filesystem.
 Deploys automatically to Netlify on push to `main` branch.
 
 Build settings:
+
 - Build command: `npm run build`
 - Publish directory: `out`

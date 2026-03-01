@@ -1,6 +1,8 @@
-import { getAllPosts } from "@/lib/posts";
-import { Github, Linkedin } from "lucide-react";
-import type { Metadata } from "next";
+import { getAllPosts } from "@/lib/posts"
+import type { Metadata } from "next"
+import SiteHeader from "@/components/SiteHeader"
+import SiteFooter from "@/components/SiteFooter"
+import SocialLinks from "@/components/SocialLinks"
 
 export const metadata: Metadata = {
   title: "Thoughts",
@@ -12,22 +14,14 @@ export const metadata: Metadata = {
       "Writing about design systems, UX engineering, and building better experiences. Thoughts on clarity, collaboration, and making work more human.",
     url: "https://jryanconklin.com/thoughts",
   },
-};
+}
 
 export default function Thoughts() {
-  const posts = getAllPosts();
+  const posts = getAllPosts()
 
   return (
     <>
-      <header className="site-header">
-        <h1>
-          <a href="/">J. Ryan Conklin</a>
-        </h1>
-        <nav className="site-nav">
-          <a href="/experience">Experience</a>
-          <a href="/thoughts">Thoughts</a>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <main className="page-container">
         <section className="intro">
@@ -60,31 +54,10 @@ export default function Thoughts() {
 
         <hr />
 
-        <section className="section">
-          <h3 className="section-title">Connect</h3>
-          <ul className="social-links">
-            <li>
-              <a href="https://github.com/jryanconklin" title="GitHub">
-                <Github />
-                <span>GitHub</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://www.linkedin.com/in/jryanconklin/"
-                title="LinkedIn"
-              >
-                <Linkedin />
-                <span>LinkedIn</span>
-              </a>
-            </li>
-          </ul>
-        </section>
+        <SocialLinks />
       </main>
 
-      <footer className="site-footer">
-        <p>© 2025 J. Ryan Conklin · Built with Next.js</p>
-      </footer>
+      <SiteFooter />
     </>
-  );
+  )
 }

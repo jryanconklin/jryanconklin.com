@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from "next"
+import "@froglet/ui/styles"
+import "./globals.css"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://jryanconklin.com"),
@@ -22,18 +23,16 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-};
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="en">
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
-  );
+  )
 }
