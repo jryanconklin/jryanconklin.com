@@ -63,7 +63,12 @@ function getPost(slug) {
     process.exit(1)
   }
   const { data } = matter(fs.readFileSync(file, "utf8"))
-  return { slug, title: data.title, date: data.date, description: data.description }
+  return {
+    slug,
+    title: data.title,
+    date: data.date,
+    description: data.description,
+  }
 }
 
 function getNewestPost() {
@@ -87,7 +92,11 @@ function buildText(description, url) {
   let desc = description
   if (graphemeLen(desc) > maxDescLen) {
     const segs = [...segmenter.segment(desc)]
-    desc = segs.slice(0, maxDescLen - 1).map((s) => s.segment).join("") + "…"
+    desc =
+      segs
+        .slice(0, maxDescLen - 1)
+        .map((s) => s.segment)
+        .join("") + "…"
   }
   return `${desc}${suffix}`
 }

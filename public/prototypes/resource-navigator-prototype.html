@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resource Navigator — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f1eb;
+    --surface: #ffffff;
+    --border: #d6d0c4;
+    --text: #1a1814;
+    --muted: #6b6560;
+    --accent: #2d5f3f;
+    --accent-light: #e8f0eb;
+    --accent2: #c4470a;
+    --tag-bg: #e8f0eb;
+    --tag-border: #b0c9b8;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--text);
+    color: var(--bg);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header .logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  header .logo span { color: #7db892; }
+  header nav { display: flex; gap: 4px; }
+  header nav button {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.7);
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  header nav button:hover,
+  header nav button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* ── Layout ── */
+  .workspace {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    min-height: calc(100vh - 52px);
+  }
+  .workspace.active { display: grid; }
+
+  .pane {
+    padding: 28px 24px;
+    overflow-y: auto;
+  }
+  .pane-form {
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .pane-display { background: var(--bg); }
+
+  .pane-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pane-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Form Elements ── */
+  .form-section {
+    margin-bottom: 28px;
+  }
+  .form-section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--accent-light);
+  }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.04em;
+  }
+  .field label .req { color: var(--accent2); margin-left: 2px; }
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus { border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 72px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+  /* Tag multiselect */
+  .tag-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    padding: 4px 8px;
+    border: 1px solid var(--tag-border);
+    background: var(--tag-bg);
+    cursor: pointer;
+    color: var(--accent);
+    transition: all 0.12s;
+    user-select: none;
+  }
+  .tag:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tag.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tag.selected-specialize {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+  .tag-hint {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  /* Specialize row */
+  .specialize-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: var(--accent-light);
+    border-left: 2px solid var(--accent);
+    font-size: 11px;
+    color: var(--accent);
+  }
+  .specialize-row input[type=checkbox] { accent-color: var(--accent); }
+
+  /* Boolean toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .toggle-row label { margin: 0; font-size: 13px; color: var(--text); cursor: pointer; }
+  .toggle-row input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; }
+
+  /* Form actions */
+  .form-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #1e4a2e; }
+  .btn-secondary { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--text); color: var(--text); }
+
+  /* ── Display: Directory Listing ── */
+  .dir-header {
+    margin-bottom: 20px;
+  }
+  .dir-header h2 {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .dir-header p { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+  .dir-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .dir-filters select {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .dir-count {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    letter-spacing: 0.06em;
+  }
+
+  .org-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .org-card:hover { border-color: var(--accent); }
+  .org-logo {
+    width: 48px;
+    height: 48px;
+    background: var(--accent-light);
+    border: 1px solid var(--tag-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .org-card-body h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .org-card-body p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .org-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .org-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border: 1px solid var(--tag-border);
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .org-tag.vetted {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+  .org-tag.type {
+    border-color: var(--border);
+    background: var(--bg);
+  }
+
+  /* ── Display: Profile ── */
+  .profile-header {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .profile-logo {
+    width: 64px;
+    height: 64px;
+    background: var(--accent-light);
+    border: 1px solid var(--tag-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .profile-header h2 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .profile-header .profile-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .profile-section { margin-bottom: 20px; }
+  .profile-section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .profile-section p { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .profile-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .profile-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border: 1px solid var(--tag-border);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+  .profile-tag.specialize {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .specialize-legend {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 6px;
+    display: flex;
+    gap: 12px;
+  }
+  .specialize-legend span { display: flex; align-items: center; gap: 4px; }
+  .legend-dot {
+    width: 8px; height: 8px;
+    display: inline-block;
+  }
+  .legend-dot.provides { background: var(--accent-light); border: 1px solid var(--tag-border); }
+  .legend-dot.specializes { background: var(--accent); }
+
+  /* ── Display: Navigation Record ── */
+  .nav-record {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+  .nav-record-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-record-header h3 { font-size: 16px; font-weight: 600; }
+  .nav-record-header .nav-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .nav-status {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1px solid;
+  }
+  .nav-status.active { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
+  .nav-status.complete { color: var(--muted); border-color: var(--border); }
+  .nav-status.draft { color: var(--accent2); border-color: var(--accent2); }
+
+  .nav-section { margin-bottom: 16px; }
+  .nav-section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .nav-resource-list { display: flex; flex-direction: column; gap: 6px; }
+  .nav-resource {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .nav-resource-icon {
+    width: 28px; height: 28px;
+    background: var(--accent-light);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .nav-resource-name { font-size: 13px; font-weight: 500; }
+  .nav-resource-sub { font-size: 11px; color: var(--muted); }
+  .nav-notes {
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .nav-entrepreneurs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .nav-person-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 12px;
+  }
+  .nav-person-avatar {
+    width: 22px; height: 22px;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── Display: Person Profile ── */
+  .person-profile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+  .person-header {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .person-avatar-lg {
+    width: 64px; height: 64px;
+    background: var(--text);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .person-header h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .person-roles { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .role-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .role-badge.navigator { border-color: var(--accent2); color: var(--accent2); }
+  .role-badge.entrepreneur { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Display: Offering Listing ── */
+  .offering-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin-bottom: 8px;
+  }
+  .offering-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .offering-type-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .offering-type-badge.grant { border-color: #b07d2e; color: #b07d2e; background: #fdf6e8; }
+  .offering-type-badge.event { border-color: #2d5f8f; color: #2d5f8f; background: #e8f0f8; }
+  .offering-type-badge.program { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .offering-type-badge.workshop { border-color: #7d2db0; color: #7d2db0; background: #f5e8fd; }
+  .offering-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .offering-card .offering-org { font-size: 11px; color: var(--accent); margin-bottom: 6px; }
+  .offering-card p { font-size: 12px; color: var(--muted); margin-bottom: 8px; line-height: 1.4; }
+  .offering-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .offering-meta span::before { content: '· '; }
+  .offering-meta span:first-child::before { content: ''; }
+
+  /* ── Utility ── */
+  .display-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .display-tab {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.12s;
+  }
+  .display-tab.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+  .display-view { display: none; }
+  .display-view.active { display: block; }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Resource <span>Navigator</span></div>
+  <nav>
+    <button class="active" onclick="switchTab('org')">Organization</button>
+    <button onclick="switchTab('offering')">Offering</button>
+    <button onclick="switchTab('company')">Company</button>
+    <button onclick="switchTab('person')">Person</button>
+    <button onclick="switchTab('navigation')">Navigation</button>
+  </nav>
+</header>
+
+<!-- ════════════════════════════════════════════════════
+     ORGANIZATION
+════════════════════════════════════════════════════ -->
+<div id="tab-org" class="workspace active">
+
+  <!-- FORM -->
+  <div class="pane pane-form">
+    <div class="pane-label">Data Entry</div>
+
+    <div class="form-section">
+      <div class="form-section-title">Identity</div>
+      <div class="field">
+        <label>Organization Name <span class="req">*</span></label>
+        <input type="text" placeholder="Oregon Entrepreneurs Network">
+      </div>
+      <div class="field">
+        <label>Organization Type <span class="req">*</span></label>
+        <select>
+          <option>— Select —</option>
+          <option>Nonprofit</option>
+          <option>Government</option>
+          <option>University</option>
+          <option>Volunteer Run</option>
+          <option>For Profit</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Website URL</label>
+        <input type="url" placeholder="https://oen.org">
+      </div>
+      <div class="field">
+        <label>Quick Description <span class="req">*</span></label>
+        <input type="text" placeholder="One sentence shown in directory listing">
+      </div>
+      <div class="field">
+        <label>Full Description <span class="req">*</span></label>
+        <textarea placeholder="Full profile description (WYSIWYG in production)"></textarea>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Contact &amp; Location</div>
+      <div class="field-row">
+        <div class="field"><label>Phone</label><input type="tel" placeholder="503-555-0101"></div>
+        <div class="field"><label>Email</label><input type="email" placeholder="info@org.org"></div>
+      </div>
+      <div class="field">
+        <label>Address Line 1</label>
+        <input type="text" placeholder="123 NW Broadway">
+      </div>
+      <div class="field-row-3">
+        <div class="field"><label>City</label><input type="text" placeholder="Portland"></div>
+        <div class="field"><label>State</label><input type="text" value="Oregon"></div>
+        <div class="field"><label>Zip</label><input type="text" placeholder="97201"></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Social Links</div>
+      <div class="field-row">
+        <div class="field"><label>LinkedIn</label><input type="url" placeholder="https://linkedin.com/..."></div>
+        <div class="field"><label>Instagram</label><input type="url" placeholder="https://instagram.com/..."></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Facebook</label><input type="url" placeholder="https://facebook.com/..."></div>
+        <div class="field"><label>X</label><input type="url" placeholder="https://x.com/..."></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Industry</div>
+      <div class="tag-hint">Click once to mark Provides. Click again to mark Specializes. Click again to deselect.</div>
+      <div class="tag-group" id="org-industry-tags">
+        <span class="tag" onclick="cycleTag(this)">AgTech</span>
+        <span class="tag" onclick="cycleTag(this)">CleanTech / ClimateTech</span>
+        <span class="tag" onclick="cycleTag(this)">CPG</span>
+        <span class="tag" onclick="cycleTag(this)">Food and Beverage</span>
+        <span class="tag" onclick="cycleTag(this)">High Tech</span>
+        <span class="tag" onclick="cycleTag(this)">Life / Bioscience</span>
+        <span class="tag" onclick="cycleTag(this)">Manufacturing</span>
+        <span class="tag" onclick="cycleTag(this)">Natural Resources</span>
+        <span class="tag" onclick="cycleTag(this)">Outdoors</span>
+        <span class="tag" onclick="cycleTag(this)">Software / Technology</span>
+        <span class="tag" onclick="cycleTag(this)">General</span>
+        <span class="tag" onclick="cycleTag(this)">Other</span>
+      </div>
+      <div class="tag-hint" style="margin-top:8px;">
+        <span style="color:var(--accent);font-weight:500;">Green</span> = Provides &nbsp;|&nbsp;
+        <span style="color:var(--text);font-weight:500;">Black</span> = Specializes
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Business Stage Served</div>
+      <div class="tag-group">
+        <span class="tag" onclick="cycleTag(this)">Concept</span>
+        <span class="tag" onclick="cycleTag(this)">Startup</span>
+        <span class="tag" onclick="cycleTag(this)">Existing</span>
+        <span class="tag" onclick="cycleTag(this)">Growth</span>
+        <span class="tag" onclick="cycleTag(this)">Transition</span>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Services</div>
+      <div class="tag-group">
+        <span class="tag" onclick="cycleTag(this)">Business Development</span>
+        <span class="tag" onclick="cycleTag(this)">Market Research</span>
+        <span class="tag" onclick="cycleTag(this)">Product Development</span>
+        <span class="tag" onclick="cycleTag(this)">Funding</span>
+        <span class="tag" onclick="cycleTag(this)">Legal &amp; Regulatory</span>
+        <span class="tag" onclick="cycleTag(this)">Go To Market</span>
+        <span class="tag" onclick="cycleTag(this)">Market Access</span>
+        <span class="tag" onclick="cycleTag(this)">Talent Acquisition</span>
+        <span class="tag" onclick="cycleTag(this)">Mentorship</span>
+        <span class="tag" onclick="cycleTag(this)">Facilities</span>
+        <span class="tag" onclick="cycleTag(this)">Growth</span>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Underserved Communities</div>
+      <div class="tag-group">
+        <span class="tag" onclick="cycleTag(this)">Black</span>
+        <span class="tag" onclick="cycleTag(this)">Asian</span>
+        <span class="tag" onclick="cycleTag(this)">Hispanic</span>
+        <span class="tag" onclick="cycleTag(this)">Immigrant</span>
+        <span class="tag" onclick="cycleTag(this)">LGBTQ</span>
+        <span class="tag" onclick="cycleTag(this)">Native American</span>
+        <span class="tag" onclick="cycleTag(this)">Veteran</span>
+        <span class="tag" onclick="cycleTag(this)">Woman</span>
+        <span class="tag" onclick="cycleTag(this)">Youth</span>
+        <span class="tag" onclick="cycleTag(this)">Rural</span>
+        <span class="tag" onclick="cycleTag(this)">Urban</span>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Delivery</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Geographic Reach</label>
+          <div class="tag-group">
+            <span class="tag" onclick="cycleTag(this)">Local</span>
+            <span class="tag" onclick="cycleTag(this)">Regional</span>
+            <span class="tag" onclick="cycleTag(this)">Statewide</span>
+            <span class="tag" onclick="cycleTag(this)">National</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Delivery Mode</label>
+          <div class="tag-group">
+            <span class="tag" onclick="cycleTag(this)">In Person</span>
+            <span class="tag" onclick="cycleTag(this)">Virtual</span>
+            <span class="tag" onclick="cycleTag(this)">Both</span>
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label>Geographic Limit (optional)</label>
+        <input type="text" placeholder="e.g. Portland metro only">
+      </div>
+      <div class="toggle-row" style="margin-top:10px;">
+        <input type="checkbox" id="biz-plan">
+        <label for="biz-plan">Requires completed business plan</label>
+      </div>
+      <div class="toggle-row" style="margin-top:6px;">
+        <input type="checkbox" id="vetted" checked>
+        <label for="vetted">Vetted for referral (admin only)</label>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary">Save Organization</button>
+      <button class="btn btn-secondary">Clear</button>
+    </div>
+  </div>
+
+  <!-- DISPLAY -->
+  <div class="pane pane-display">
+    <div class="pane-label">Display Preview</div>
+
+    <div class="display-tabs">
+      <button class="display-tab active" onclick="switchDisplay('org-dir', this)">Directory</button>
+      <button class="display-tab" onclick="switchDisplay('org-profile', this)">Profile</button>
+    </div>
+
+    <!-- Directory view -->
+    <div id="org-dir" class="display-view active">
+      <div class="dir-header">
+        <h2>Oregon Resource Directory</h2>
+        <p>Find entrepreneurial support organizations across Oregon</p>
+      </div>
+      <div class="dir-filters">
+        <select><option>All Industries</option><option>High Tech</option><option>Food and Beverage</option><option>AgTech</option></select>
+        <select><option>All Stages</option><option>Startup</option><option>Growth</option><option>Concept</option></select>
+        <select><option>All Services</option><option>Funding</option><option>Mentorship</option><option>Legal</option></select>
+        <select><option>All Types</option><option>Nonprofit</option><option>Government</option></select>
+      </div>
+      <div class="dir-count">639 ORGANIZATIONS</div>
+
+      <div class="org-card">
+        <div class="org-logo">OEN</div>
+        <div class="org-card-body">
+          <h3>Oregon Entrepreneurs Network</h3>
+          <p>Statewide network connecting entrepreneurs to capital and community.</p>
+          <div class="org-tags">
+            <span class="org-tag vetted">✓ Vetted</span>
+            <span class="org-tag type">Nonprofit</span>
+            <span class="org-tag">High Tech</span>
+            <span class="org-tag">Software</span>
+            <span class="org-tag">Statewide</span>
+            <span class="org-tag">Funding ★</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="org-card">
+        <div class="org-logo">PIE</div>
+        <div class="org-card-body">
+          <h3>Portland Incubator Experiment</h3>
+          <p>Accelerator focused on early-stage tech startups in the Pacific Northwest.</p>
+          <div class="org-tags">
+            <span class="org-tag vetted">✓ Vetted</span>
+            <span class="org-tag type">Nonprofit</span>
+            <span class="org-tag">High Tech ★</span>
+            <span class="org-tag">Software ★</span>
+            <span class="org-tag">Portland</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="org-card">
+        <div class="org-logo">ME</div>
+        <div class="org-card-body">
+          <h3>Micro Enterprise Services of Oregon</h3>
+          <p>Microloans and business development for underserved entrepreneurs.</p>
+          <div class="org-tags">
+            <span class="org-tag vetted">✓ Vetted</span>
+            <span class="org-tag type">Nonprofit</span>
+            <span class="org-tag">Funding ★</span>
+            <span class="org-tag">Black ★</span>
+            <span class="org-tag">Hispanic ★</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="org-card">
+        <div class="org-logo">CW</div>
+        <div class="org-card-body">
+          <h3>Cowork PDX</h3>
+          <p>Flexible co-working and meeting space in the Pearl District.</p>
+          <div class="org-tags">
+            <span class="org-tag" style="border-color:#c4470a;color:#c4470a;">Unvetted</span>
+            <span class="org-tag type">For Profit</span>
+            <span class="org-tag">Facilities</span>
+            <span class="org-tag">Local</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile view -->
+    <div id="org-profile" class="display-view">
+      <div class="profile-header">
+        <div class="profile-logo">OEN</div>
+        <div>
+          <h2>Oregon Entrepreneurs Network</h2>
+          <div class="profile-meta">
+            <span class="org-tag vetted">✓ Vetted for Referral</span>
+            <span class="org-tag type">Nonprofit</span>
+            <span class="org-tag">Statewide</span>
+          </div>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">About</div>
+        <p>Statewide network connecting entrepreneurs to capital and community. OEN runs the Angel Oregon investment competition and supports high-growth startups across the state.</p>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">Industries Served</div>
+        <div class="profile-tags">
+          <span class="profile-tag specialize">High Tech ★</span>
+          <span class="profile-tag specialize">Software ★</span>
+          <span class="profile-tag">Life / Bioscience</span>
+          <span class="profile-tag">General</span>
+        </div>
+        <div class="specialize-legend">
+          <span><i class="legend-dot provides"></i> Provides</span>
+          <span><i class="legend-dot specializes"></i> Specializes (★)</span>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">Services</div>
+        <div class="profile-tags">
+          <span class="profile-tag specialize">Funding ★</span>
+          <span class="profile-tag specialize">Market Access ★</span>
+          <span class="profile-tag">Business Development</span>
+          <span class="profile-tag">Mentorship</span>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">Business Stages</div>
+        <div class="profile-tags">
+          <span class="profile-tag specialize">Startup ★</span>
+          <span class="profile-tag">Growth</span>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">Contact</div>
+        <p>info@oen.org &nbsp;·&nbsp; 503-555-0101 &nbsp;·&nbsp; <a href="#" style="color:var(--accent)">oen.org</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     OFFERING
+════════════════════════════════════════════════════ -->
+<div id="tab-offering" class="workspace">
+  <div class="pane pane-form">
+    <div class="pane-label">Data Entry</div>
+
+    <div class="form-section">
+      <div class="form-section-title">Identity</div>
+      <div class="field">
+        <label>Offering Name <span class="req">*</span></label>
+        <input type="text" placeholder="OEN Angel Oregon">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Offering Type <span class="req">*</span></label>
+          <select>
+            <option>— Select —</option>
+            <option>Program</option>
+            <option>Workshop</option>
+            <option>Grant</option>
+            <option>Event</option>
+            <option>Service</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Organization <span class="req">*</span></label>
+          <select>
+            <option>— Select —</option>
+            <option>Oregon Entrepreneurs Network</option>
+            <option>PIE</option>
+            <option>SCORE Portland</option>
+            <option>MESO</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>URL</label>
+        <input type="url" placeholder="https://oen.org/angel-oregon">
+      </div>
+      <div class="field">
+        <label>About</label>
+        <textarea placeholder="Full description (WYSIWYG in production)"></textarea>
+      </div>
+      <div class="field">
+        <label>Best For</label>
+        <textarea placeholder="Who this offering is ideal for"></textarea>
+      </div>
+      <div class="field">
+        <label>Lead Contact</label>
+        <select>
+          <option>— Select Person —</option>
+          <option>Sarah Okonkwo</option>
+          <option>Jin Park</option>
+          <option>Marcus Delgado</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Logistics</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Cost</label>
+          <select>
+            <option>Free</option>
+            <option>Paid</option>
+            <option>Sliding Scale</option>
+            <option>Equity-based</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Format</label>
+          <select>
+            <option>— Select —</option>
+            <option>Series / Cohort</option>
+            <option>Singular Session</option>
+            <option>One on One</option>
+            <option>Both</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Deadline</label><input type="date"></div>
+        <div class="field"><label>Start Date</label><input type="date"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Capacity</label><input type="number" placeholder="50"></div>
+        <div class="field"><label>Application URL</label><input type="url" placeholder="https://..."></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Industry</div>
+      <div class="tag-group">
+        <span class="tag" onclick="cycleTag(this)">High Tech</span>
+        <span class="tag" onclick="cycleTag(this)">Software</span>
+        <span class="tag" onclick="cycleTag(this)">Life / Bioscience</span>
+        <span class="tag" onclick="cycleTag(this)">Food and Beverage</span>
+        <span class="tag" onclick="cycleTag(this)">AgTech</span>
+        <span class="tag" onclick="cycleTag(this)">General</span>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Services</div>
+      <div class="tag-group">
+        <span class="tag" onclick="cycleTag(this)">Funding</span>
+        <span class="tag" onclick="cycleTag(this)">Business Development</span>
+        <span class="tag" onclick="cycleTag(this)">Market Research</span>
+        <span class="tag" onclick="cycleTag(this)">Go To Market</span>
+        <span class="tag" onclick="cycleTag(this)">Mentorship</span>
+        <span class="tag" onclick="cycleTag(this)">Legal &amp; Regulatory</span>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Business Stage</div>
+      <div class="tag-group">
+        <span class="tag" onclick="cycleTag(this)">Concept</span>
+        <span class="tag" onclick="cycleTag(this)">Startup</span>
+        <span class="tag" onclick="cycleTag(this)">Pre-Revenue</span>
+        <span class="tag" onclick="cycleTag(this)">Early Revenue</span>
+        <span class="tag" onclick="cycleTag(this)">Growth</span>
+        <span class="tag" onclick="cycleTag(this)">Transition</span>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary">Save Offering</button>
+      <button class="btn btn-secondary">Clear</button>
+    </div>
+  </div>
+
+  <div class="pane pane-display">
+    <div class="pane-label">Display Preview</div>
+    <div class="dir-header">
+      <h2>Programs &amp; Offerings</h2>
+      <p>Resources available to Oregon entrepreneurs</p>
+    </div>
+    <div class="dir-filters">
+      <select><option>All Types</option><option>Program</option><option>Grant</option><option>Event</option><option>Workshop</option></select>
+      <select><option>All Industries</option><option>High Tech</option><option>Food and Beverage</option></select>
+      <select><option>All Stages</option><option>Startup</option><option>Growth</option></select>
+      <select><option>All Services</option><option>Funding</option><option>Mentorship</option></select>
+    </div>
+
+    <div class="offering-card">
+      <div class="offering-card-header">
+        <div>
+          <h3>OEN Angel Oregon</h3>
+          <div class="offering-org">Oregon Entrepreneurs Network</div>
+        </div>
+        <span class="offering-type-badge program">Program</span>
+      </div>
+      <p>Annual angel investment competition connecting Oregon startups to investors. Series of pitch events culminating in investment decisions.</p>
+      <div class="offering-meta">
+        <span>Free</span>
+        <span>Cohort</span>
+        <span>Statewide</span>
+        <span>Deadline: Mar 15</span>
+        <span>Capacity: 50</span>
+      </div>
+      <div class="org-tags" style="margin-top:8px;">
+        <span class="org-tag">High Tech ★</span>
+        <span class="org-tag">Funding ★</span>
+        <span class="org-tag">Startup</span>
+      </div>
+    </div>
+
+    <div class="offering-card">
+      <div class="offering-card-header">
+        <div>
+          <h3>MESO Microloan</h3>
+          <div class="offering-org">Micro Enterprise Services of Oregon</div>
+        </div>
+        <span class="offering-type-badge grant">Grant</span>
+      </div>
+      <p>Microloans from $500 to $50,000 for underserved small business owners in Portland who lack access to traditional financing.</p>
+      <div class="offering-meta">
+        <span>Paid (interest)</span>
+        <span>One on One</span>
+        <span>Portland</span>
+      </div>
+      <div class="org-tags" style="margin-top:8px;">
+        <span class="org-tag">Funding ★</span>
+        <span class="org-tag">Black ★</span>
+        <span class="org-tag">Hispanic ★</span>
+        <span class="org-tag">Concept</span>
+      </div>
+    </div>
+
+    <div class="offering-card">
+      <div class="offering-card-header">
+        <div>
+          <h3>Business Bootcamp</h3>
+          <div class="offering-org">Livelihood NW</div>
+        </div>
+        <span class="offering-type-badge event">Event</span>
+      </div>
+      <p>Intensive single-day workshop covering business fundamentals for early-stage entrepreneurs.</p>
+      <div class="offering-meta">
+        <span>Free</span>
+        <span>Singular Session</span>
+        <span>In Person</span>
+        <span>Portland</span>
+      </div>
+      <div class="org-tags" style="margin-top:8px;">
+        <span class="org-tag">Business Development</span>
+        <span class="org-tag">Pre-Revenue</span>
+      </div>
+    </div>
+
+    <div class="offering-card">
+      <div class="offering-card-header">
+        <div>
+          <h3>Quickbooks Training</h3>
+          <div class="offering-org">Livelihood NW</div>
+        </div>
+        <span class="offering-type-badge workshop">Workshop</span>
+      </div>
+      <p>Hands-on Quickbooks training for small business owners managing their own books.</p>
+      <div class="offering-meta">
+        <span>Free</span>
+        <span>Singular Session</span>
+        <span>Virtual</span>
+      </div>
+      <div class="org-tags" style="margin-top:8px;">
+        <span class="org-tag">Business Development</span>
+        <span class="org-tag">Existing</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     COMPANY
+════════════════════════════════════════════════════ -->
+<div id="tab-company" class="workspace">
+  <div class="pane pane-form">
+    <div class="pane-label">Data Entry</div>
+
+    <div class="form-section">
+      <div class="form-section-title">Identity</div>
+      <div class="field"><label>Company Name <span class="req">*</span></label><input type="text" placeholder="Trailhead Tech"></div>
+      <div class="field"><label>Website URL</label><input type="url" placeholder="https://trailheadtech.io"></div>
+      <div class="field"><label>Quick Description</label><input type="text" placeholder="One sentence summary"></div>
+      <div class="field"><label>Full Description</label><textarea placeholder="Full description (WYSIWYG in production)"></textarea></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Contact &amp; Location</div>
+      <div class="field-row">
+        <div class="field"><label>Phone</label><input type="tel"></div>
+        <div class="field"><label>Email</label><input type="email"></div>
+      </div>
+      <div class="field"><label>Address Line 1</label><input type="text"></div>
+      <div class="field-row-3">
+        <div class="field"><label>City</label><input type="text" placeholder="Portland"></div>
+        <div class="field"><label>State</label><input type="text" value="Oregon"></div>
+        <div class="field"><label>Zip</label><input type="text"></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Company Details</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Business Stage</label>
+          <select>
+            <option>— Select —</option>
+            <option>Concept</option>
+            <option>Startup</option>
+            <option>Existing</option>
+            <option>Growth</option>
+            <option>Transition</option>
+          </select>
+        </div>
+        <div class="field"><label>Founded Date</label><input type="date"></div>
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" id="is-startup">
+        <label for="is-startup">Is a startup</label>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Industry</div>
+      <div class="tag-hint">Plain multiselect. No specialize flag.</div>
+      <div class="tag-group">
+        <span class="tag" onclick="toggleTag(this)">AgTech</span>
+        <span class="tag" onclick="toggleTag(this)">CPG</span>
+        <span class="tag" onclick="toggleTag(this)">Food and Beverage</span>
+        <span class="tag" onclick="toggleTag(this)">High Tech</span>
+        <span class="tag" onclick="toggleTag(this)">Manufacturing</span>
+        <span class="tag" onclick="toggleTag(this)">Natural Resources</span>
+        <span class="tag" onclick="toggleTag(this)">Outdoors</span>
+        <span class="tag" onclick="toggleTag(this)">Software</span>
+        <span class="tag" onclick="toggleTag(this)">General</span>
+        <span class="tag" onclick="toggleTag(this)">Other</span>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Ownership Demographics</div>
+      <div class="tag-group">
+        <span class="tag" onclick="toggleTag(this)">Black</span>
+        <span class="tag" onclick="toggleTag(this)">Asian</span>
+        <span class="tag" onclick="toggleTag(this)">Hispanic</span>
+        <span class="tag" onclick="toggleTag(this)">Immigrant</span>
+        <span class="tag" onclick="toggleTag(this)">LGBTQ</span>
+        <span class="tag" onclick="toggleTag(this)">Native American</span>
+        <span class="tag" onclick="toggleTag(this)">Veteran</span>
+        <span class="tag" onclick="toggleTag(this)">Woman</span>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Affiliated Organizations</div>
+      <div class="field">
+        <label>Organizations</label>
+        <select>
+          <option>— Add Organization —</option>
+          <option>Oregon Entrepreneurs Network</option>
+          <option>PIE</option>
+          <option>SCORE Portland</option>
+          <option>Oregon SBDC Network</option>
+        </select>
+      </div>
+      <div class="tag-group" style="margin-top:8px;">
+        <span class="tag selected">Oregon Entrepreneurs Network ×</span>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary">Save Company</button>
+      <button class="btn btn-secondary">Clear</button>
+    </div>
+  </div>
+
+  <div class="pane pane-display">
+    <div class="pane-label">Display Preview</div>
+    <div class="dir-header">
+      <h2>Companies</h2>
+      <p>Oregon startups and businesses in the network</p>
+    </div>
+
+    <div class="org-card">
+      <div class="org-logo" style="font-size:11px;">TT</div>
+      <div class="org-card-body">
+        <h3>Trailhead Tech</h3>
+        <p>B2B SaaS for outdoor industry supply chain management.</p>
+        <div class="org-tags">
+          <span class="org-tag type">Startup</span>
+          <span class="org-tag">High Tech</span>
+          <span class="org-tag">Software</span>
+          <span class="org-tag">Regional</span>
+          <span class="org-tag">Est. 2023</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="org-card">
+      <div class="org-logo" style="font-size:11px;">CC</div>
+      <div class="org-card-body">
+        <h3>Cascadia Coffee Roasters</h3>
+        <p>Specialty coffee roaster focused on direct trade sourcing.</p>
+        <div class="org-tags">
+          <span class="org-tag type">Existing</span>
+          <span class="org-tag">Food and Beverage</span>
+          <span class="org-tag">Hispanic</span>
+          <span class="org-tag">Local</span>
+          <span class="org-tag">Est. 2018</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="org-card">
+      <div class="org-logo" style="font-size:11px;">PA</div>
+      <div class="org-card-body">
+        <h3>Pacific Agri Solutions</h3>
+        <p>AgTech startup developing soil health monitoring tools for Oregon farmers.</p>
+        <div class="org-tags">
+          <span class="org-tag type">Startup</span>
+          <span class="org-tag">AgTech</span>
+          <span class="org-tag">High Tech</span>
+          <span class="org-tag">Rural</span>
+          <span class="org-tag">Est. 2022</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PERSON
+════════════════════════════════════════════════════ -->
+<div id="tab-person" class="workspace">
+  <div class="pane pane-form">
+    <div class="pane-label">Data Entry</div>
+
+    <div class="form-section">
+      <div class="form-section-title">Identity</div>
+      <div class="field-row">
+        <div class="field"><label>First Name <span class="req">*</span></label><input type="text" placeholder="Sarah"></div>
+        <div class="field"><label>Last Name <span class="req">*</span></label><input type="text" placeholder="Okonkwo"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Email</label><input type="email" placeholder="sarah@oen.org"></div>
+        <div class="field"><label>Phone</label><input type="tel" placeholder="503-555-0301"></div>
+      </div>
+      <div class="field"><label>Bio</label><textarea placeholder="Short bio (WYSIWYG in production)"></textarea></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Roles</div>
+      <div class="tag-hint">Select all that apply.</div>
+      <div class="tag-group">
+        <span class="tag" onclick="toggleTag(this)">Navigator</span>
+        <span class="tag" onclick="toggleTag(this)">Entrepreneur</span>
+        <span class="tag" onclick="toggleTag(this)">ESO Contact</span>
+        <span class="tag" onclick="toggleTag(this)">Company Contact</span>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Affiliations</div>
+      <div class="field">
+        <label>Organizations</label>
+        <select><option>— Add Organization —</option><option>Oregon Entrepreneurs Network</option><option>PIE</option><option>SCORE Portland</option></select>
+      </div>
+      <div class="field" style="margin-top:8px;">
+        <label>Companies</label>
+        <select><option>— Add Company —</option><option>Trailhead Tech</option><option>Cascadia Coffee</option></select>
+      </div>
+      <div class="field" style="margin-top:8px;">
+        <label>Programs / Offerings</label>
+        <select><option>— Add Offering —</option><option>OEN Angel Oregon</option><option>PIE Accelerator</option></select>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Background (if Entrepreneur)</div>
+      <div class="field">
+        <label>Business Stage</label>
+        <select>
+          <option>— Select —</option>
+          <option>Concept</option>
+          <option>Startup</option>
+          <option>Pre-Revenue</option>
+          <option>Early Revenue</option>
+          <option>Growth</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Industry Focus</label>
+        <div class="tag-group" style="margin-top:4px;">
+          <span class="tag" onclick="toggleTag(this)">High Tech</span>
+          <span class="tag" onclick="toggleTag(this)">Software</span>
+          <span class="tag" onclick="toggleTag(this)">Food and Beverage</span>
+          <span class="tag" onclick="toggleTag(this)">AgTech</span>
+          <span class="tag" onclick="toggleTag(this)">General</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Self-Identified Communities</label>
+        <div class="tag-group" style="margin-top:4px;">
+          <span class="tag" onclick="toggleTag(this)">Black</span>
+          <span class="tag" onclick="toggleTag(this)">Hispanic</span>
+          <span class="tag" onclick="toggleTag(this)">Woman</span>
+          <span class="tag" onclick="toggleTag(this)">Veteran</span>
+          <span class="tag" onclick="toggleTag(this)">LGBTQ</span>
+          <span class="tag" onclick="toggleTag(this)">Immigrant</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Languages</label>
+        <div class="tag-group" style="margin-top:4px;">
+          <span class="tag" onclick="toggleTag(this)">English</span>
+          <span class="tag" onclick="toggleTag(this)">Spanish</span>
+          <span class="tag" onclick="toggleTag(this)">Vietnamese</span>
+          <span class="tag" onclick="toggleTag(this)">Chinese</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Social Links</div>
+      <div class="field-row">
+        <div class="field"><label>LinkedIn</label><input type="url"></div>
+        <div class="field"><label>Instagram</label><input type="url"></div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary">Save Person</button>
+      <button class="btn btn-secondary">Clear</button>
+    </div>
+  </div>
+
+  <div class="pane pane-display">
+    <div class="pane-label">Display Preview</div>
+
+    <div class="person-profile">
+      <div class="person-header">
+        <div class="person-avatar-lg">SO</div>
+        <div>
+          <h2>Sarah Okonkwo</h2>
+          <div style="font-size:12px;color:var(--muted);">Oregon Entrepreneurs Network</div>
+          <div class="person-roles">
+            <span class="role-badge navigator">Navigator</span>
+            <span class="role-badge">ESO Contact</span>
+          </div>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">Bio</div>
+        <p>Program director and navigator at OEN. Connects Oregon entrepreneurs to capital, mentorship, and ecosystem resources across the state.</p>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">Affiliated Organizations</div>
+        <div class="profile-tags">
+          <span class="profile-tag">Oregon Entrepreneurs Network</span>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">Affiliated Companies</div>
+        <div class="profile-tags">
+          <span class="profile-tag">Trailhead Tech</span>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">Languages</div>
+        <div class="profile-tags">
+          <span class="profile-tag">English</span>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">Contact</div>
+        <p>sarah@oen.org &nbsp;·&nbsp; 503-555-0301</p>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="person-profile" style="margin-top:0;">
+      <div class="person-header">
+        <div class="person-avatar-lg" style="background:var(--accent2);">JP</div>
+        <div>
+          <h2>Jin Park</h2>
+          <div style="font-size:12px;color:var(--muted);">PIE &amp; Trailhead Tech</div>
+          <div class="person-roles">
+            <span class="role-badge entrepreneur">Entrepreneur</span>
+            <span class="role-badge">ESO Contact</span>
+            <span class="role-badge">Company Contact</span>
+          </div>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">Venture</div>
+        <div class="profile-tags">
+          <span class="profile-tag">Trailhead Tech</span>
+          <span class="profile-tag">Startup</span>
+          <span class="profile-tag">High Tech</span>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">Communities</div>
+        <div class="profile-tags">
+          <span class="profile-tag">LGBTQ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     NAVIGATION
+════════════════════════════════════════════════════ -->
+<div id="tab-navigation" class="workspace">
+  <div class="pane pane-form">
+    <div class="pane-label">Data Entry</div>
+
+    <div class="form-section">
+      <div class="form-section-title">Session</div>
+      <div class="field"><label>Title (optional)</label><input type="text" placeholder="Trailhead Tech Intro Session"></div>
+      <div class="field-row">
+        <div class="field"><label>Date <span class="req">*</span></label><input type="date"></div>
+        <div class="field">
+          <label>Status</label>
+          <select>
+            <option>Draft</option>
+            <option>Active</option>
+            <option>Complete</option>
+            <option>Archived</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Navigator <span class="req">*</span></label>
+        <select>
+          <option>— Select Navigator —</option>
+          <option selected>Sarah Okonkwo</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Entrepreneurs</div>
+      <div class="tag-hint">One or more. Add each by name.</div>
+      <div class="field">
+        <label>Add Entrepreneur</label>
+        <select>
+          <option>— Select Person —</option>
+          <option>Jin Park</option>
+          <option>Tom Nguyen</option>
+          <option>Amara Williams</option>
+          <option>Kenji Watanabe</option>
+        </select>
+      </div>
+      <div class="tag-group" style="margin-top:8px;">
+        <span class="tag selected">Jin Park ×</span>
+        <span class="tag selected">Kenji Watanabe ×</span>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Company (optional)</div>
+      <div class="field">
+        <select>
+          <option>— Select Company —</option>
+          <option selected>Trailhead Tech</option>
+          <option>Cascadia Coffee Roasters</option>
+          <option>Pacific Agri Solutions</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Resources Surfaced</div>
+      <div class="field">
+        <label>Organizations</label>
+        <select><option>— Add Organization —</option><option>Oregon Entrepreneurs Network</option><option>PIE</option><option>SCORE Portland</option><option>MESO</option></select>
+      </div>
+      <div class="tag-group" style="margin-top:6px;margin-bottom:10px;">
+        <span class="tag selected">Oregon Entrepreneurs Network ×</span>
+        <span class="tag selected">PIE ×</span>
+      </div>
+      <div class="field">
+        <label>Offerings</label>
+        <select><option>— Add Offering —</option><option>OEN Angel Oregon</option><option>PIE Accelerator</option><option>SCORE Mentoring</option></select>
+      </div>
+      <div class="tag-group" style="margin-top:6px;margin-bottom:10px;">
+        <span class="tag selected">OEN Angel Oregon ×</span>
+        <span class="tag selected">PIE Accelerator ×</span>
+      </div>
+      <div class="field">
+        <label>People</label>
+        <select><option>— Add Person —</option><option>Marcus Delgado</option><option>Diane Reyes</option></select>
+      </div>
+      <div class="tag-group" style="margin-top:6px;">
+        <span class="tag selected">Marcus Delgado ×</span>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Notes &amp; Follow-up</div>
+      <div class="field"><label>Session Notes</label><textarea style="min-height:100px;" placeholder="Navigator's notes from the session (WYSIWYG in production)"></textarea></div>
+      <div class="field-row">
+        <div class="field"><label>Follow Up Date</label><input type="date"></div>
+        <div class="field"><label>Outcome</label><input type="text" placeholder="Brief outcome summary"></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Email Summary (no login)</div>
+      <div class="tag-hint">If entrepreneur has no login, issue a summary email from this session.</div>
+      <div class="field"><label>Recipient Email</label><input type="email" placeholder="entrepreneur@email.com"></div>
+      <div class="form-actions" style="margin-top:0;">
+        <button class="btn btn-secondary">Send Summary Email</button>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary">Save Navigation</button>
+      <button class="btn btn-secondary">Clear</button>
+    </div>
+  </div>
+
+  <div class="pane pane-display">
+    <div class="pane-label">Display Preview</div>
+
+    <div class="nav-record">
+      <div class="nav-record-header">
+        <div>
+          <h3>Trailhead Tech Intro Session</h3>
+          <div class="nav-meta">Jan 15, 2026 &nbsp;·&nbsp; Navigator: Sarah Okonkwo &nbsp;·&nbsp; Follow up: Mar 1</div>
+        </div>
+        <span class="nav-status active">Active</span>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Entrepreneurs</div>
+        <div class="nav-entrepreneurs">
+          <div class="nav-person-chip">
+            <div class="nav-person-avatar">JP</div>
+            Jin Park
+          </div>
+          <div class="nav-person-chip">
+            <div class="nav-person-avatar">KW</div>
+            Kenji Watanabe
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Company</div>
+        <div class="nav-resource-list">
+          <div class="nav-resource">
+            <div class="nav-resource-icon">CO</div>
+            <div>
+              <div class="nav-resource-name">Trailhead Tech</div>
+              <div class="nav-resource-sub">Startup · High Tech · Software</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Organizations Surfaced</div>
+        <div class="nav-resource-list">
+          <div class="nav-resource">
+            <div class="nav-resource-icon">OE</div>
+            <div>
+              <div class="nav-resource-name">Oregon Entrepreneurs Network</div>
+              <div class="nav-resource-sub">Nonprofit · Statewide · Vetted</div>
+            </div>
+          </div>
+          <div class="nav-resource">
+            <div class="nav-resource-icon">PI</div>
+            <div>
+              <div class="nav-resource-name">Portland Incubator Experiment</div>
+              <div class="nav-resource-sub">Nonprofit · Regional · Vetted</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Offerings Surfaced</div>
+        <div class="nav-resource-list">
+          <div class="nav-resource">
+            <div class="nav-resource-icon" style="background:#e8f0f8;color:#2d5f8f;">PR</div>
+            <div>
+              <div class="nav-resource-name">OEN Angel Oregon</div>
+              <div class="nav-resource-sub">Program · Free · Deadline Mar 15</div>
+            </div>
+          </div>
+          <div class="nav-resource">
+            <div class="nav-resource-icon" style="background:#e8f0eb;color:#2d5f3f;">PR</div>
+            <div>
+              <div class="nav-resource-name">PIE Accelerator</div>
+              <div class="nav-resource-sub">Program · Equity-based · Cohort of 10</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Contacts Surfaced</div>
+        <div class="nav-resource-list">
+          <div class="nav-resource">
+            <div class="nav-person-avatar" style="width:28px;height:28px;font-size:10px;">MD</div>
+            <div>
+              <div class="nav-resource-name">Marcus Delgado</div>
+              <div class="nav-resource-sub">Oregon SBDC Network · ESO Contact</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Notes</div>
+        <div class="nav-notes">Two co-founders present. Strong MVP. Connected to SBDC for financial modeling support and two accelerator programs. Follow up to confirm applications submitted.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(name) {
+    document.querySelectorAll('.workspace').forEach(w => w.classList.remove('active'));
+    document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  function switchDisplay(id, btn) {
+    const parent = btn.closest('.pane-display');
+    parent.querySelectorAll('.display-view').forEach(v => v.classList.remove('active'));
+    parent.querySelectorAll('.display-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // Three-state cycle: none → selected (provides) → selected-specialize (specializes) → none
+  function cycleTag(el) {
+    if (el.classList.contains('selected-specialize')) {
+      el.classList.remove('selected-specialize');
+    } else if (el.classList.contains('selected')) {
+      el.classList.remove('selected');
+      el.classList.add('selected-specialize');
+    } else {
+      el.classList.add('selected');
+    }
+  }
+
+  // Simple two-state toggle for fields without specialize flag
+  function toggleTag(el) {
+    el.classList.toggle('selected');
+  }
+</script>
+</body>
+</html>
